@@ -1,0 +1,25 @@
+#!/usr/bin/php
+<?php
+chdir(__DIR__.'/../');
+require '_.php';
+define('DEVELOP', strpos(php_uname("n"), 'macbook')!==false);
+
+$log = _::Log(array('type' => 'stdout'));
+_::Registry()->set('CLI', $log);
+
+if (isset($argv[1]) && $argv[1] == 'force') {
+    $_REQUEST['force'] = true;
+}
+
+$config =_::Config()->config;
+date_default_timezone_set('Europe/Berlin');
+
+//_::Controller()->registerSlot('sidebar', 'slots/sidebar.php', 'templates/_aside.phtml');
+# Go
+_::Request($config->relpath[(int)DEVELOP], '', $config->host[(int)DEVELOP])->setEnv(
+    'generate',
+    'index',
+    array()
+);
+
+_::Controller()->go();
