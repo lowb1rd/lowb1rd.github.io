@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <title>My View on IPv6 Deployment</title>
+
+    <link rel="alternate" type="application/rss+xml" title="RSS-Feed lowb1rd.github.io" href="/feed.xml" />
+
+    <meta name="description" content="" />
+	  <meta name="viewport" content="width=320, initial-scale=1, shrink-to-fit=no" />
+
+    <style>
+      body {
+        max-width: 620px;
+      }
+      body, p, h1, h2, h3 {
+          font-family: monospace;
+          font-size: 13px;
+      }
+      h1 {
+          xletter-spacing: 4px;
+          text-align: center;
+          margin-bottom: 2em;
+      }
+      h3 {
+          margin-left: 3em;
+      }
+      .pre, header {
+          white-space: pre;
+      }
+      article, aside {
+          padding-top: 2em;
+          padding-bottom: 2em;
+      }
+      p {
+          margin-left: 3em;
+          margin-right: 1em;
+      }
+      article pre, div.pre {
+          margin-left: 5em;
+      }
+      article a {
+          text-decoration: none;
+      }
+      article aside h1 {
+          text-align: left;
+          letter-spacing: 5px;
+          margin-bottom: 1em;
+      }
+      article footer {
+          color: #666;
+      }
+      .flr {
+        float: right;
+      }
+    </style>
+</head>
+<body>
+
+<p><a href="index.html">[index]</a> <a href="/comment/003-my-view-on-ipv6-deployment.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd003&src=typd" target="_blank">[comment]</a></p>
+
+<header>
+<span class='fll'>lowb1rd.github.io</span><span class='flr'>July 2016</span>
+<span style="clear: both;">Category: tech</span>
+Blog Entry: 003</header>
+
+<article>
+    <h1>My View on IPv6 Deployment</h1>
+<p><em>I'm not an IPv6 expert but just a simple sysadmin. So this is just my very personal and naive view on the current state of IPv6 deployment.</em></p>
+
+<p>No doubt, the internet needs IPv6 and will become IPv6 only eventually. But it is still a long way to go! The primary issue with IPv4 is that there are not enough addresses left. This became apparent quite some time ago - the IPv6 standard has been sealed back in 1998. While they where at it, they decided to leave everything behind, start completely fresh. As a result, both protocols have to be configured separately and work independently from each other. This means for every sysadmin supporting IPv6 a doubled configuration effort. But the real bad thing about all this dualstack configurations is that they have to be tested separately since there is no connection between configured IPv4 and IPv6 addresses.</p>
+
+<h2>Why?</h2>
+
+<p>With focus on solving the address shortage issue, the primary goal of IPv6 deployment has to be to <strong>kill ALL IPv4 traffic</strong>. Any IPv6 only host is de facto useless now and it will be so as long as there is still some reasonable IPv4 traffic on the internet. IPv4 has to die to make IPv6 useful.</p>
+
+<h2>A Sysadmins Life</h2>
+
+<p>As every good sysadmin nowadays, I configured all services on my servers in dual stack mode. Of course, for any IPv6 I use there is also an IPv4 address needed. You could say that any IPv6 is directly coupled to an IPv4 address. To visualize this connection, I always use the last 2 bytes of the v6 so that they match the last byte of the v4. Example:</p>
+
+<p>I have the IPv4 <code>46.38.235.**194**</code>and the IPv6 net <code>2a03:4000:2:31::/64</code>, so I choose <code>2a03:4000:2:31::**194**</code> for the dualstack configuration.</p>
+
+<p>(yes, this is DEC vs. HEX, but good enough for me to easily detect that these IPs are used for the same dualstack configuration)</p>
+
+<h3>I hate dualstack</h3>
+
+<p>So all services run in dualstack and you do never know what Internet Protocol they are exactly using at a certain time. It depends on many things and is decided upon every single connect - or in other words: it is completely random for any single connection.</p>
+
+<p>Postfix in dualstack, for example, delivers emails to <strong>Gmail</strong> (and everywhere else, I guess) "randomly" via IPv4 or IPv6. That wouldn't be too bad if Google would not treat these protocols differently in regard of Spam filtering. People really start hating that (<a href="https://tanguy.ortolo.eu/blog/article109/google-ipv6-smtp-restrictions">1</a>, <a href="https://blog.hqcodeshop.fi/archives/120-Thanks-Google-for-your-new-IPv6-mail-policy.html">2</a>), and do even go back to IPv4 only configurations. Google's super-secret internal IP reputation database does rate these different IPs of course differently which might result in your emails being randomly (based on the IP protocol used) rejected, or even worse, filed silently into the spam folder.</p>
+
+<h2>It could be so easy, or couldn't it?</h2>
+
+<p>Why did nobody think of an easy IPv6 transition? Why doesn't have any IPv4 address one exact equivalent in the IPv6 address space? (I think this is in the IPv6 spec, but for another purpose). During the transition, you would only use IPv6 addresses from that special pool. Any of these IPv6 addresses configured in IPv6 enabled software would also bind automatically to the IPv4 equivalent. So you would only configure IPv6 from the special pool and would get dualstack automatically with zero extra configuration.</p>
+
+<p>To have really no double configuration, all IPv6 addresses of that special pool would also use automatically the reverse records of the equivalent IPv4. For any IPv6 (of the special pool) assigned to your server, you would get the equivalent v4 from your provider automatically, the NIC is configured to this v6 and would listen to the equivalent v4 automatically and so on..</p>
+
+<p>Wouldn't that have deployed IPv6 much quicker? You'd just have to wait like 20 years for the IPv4 traffic to die out and you could start with your IPv6 only configuration in the remaining infinitively large IPv6 address space - leaving all bad parts of IPv4 finally behind. In the meantime, you would have no error-prone dual-stack double configuration trouble for decades..</p>
+
+<p>Since all dualstack IPs were so tightly coupled, they wouldn't be treated diffently by any service.</p>
+
+<h2>Are there really that many problems with IPv4?</h2>
+
+<p>The address shortage is a real problem for server admins. But as I said, IPv6 did not help at all there yet because the need in IPv4 today is the exact same with or without IPv6. Getting additional IPv4 addresses is harder but still managable.</p>
+
+<h3>Any device needs a public IP address. Really?</h3>
+
+<p>My mobile internet on my phone has a private IP address and is natted to the internet. Yet I can connect to any service and I can even receive Push notifications. That is really quite amazing! So is there really a need for any device having a public IP address? I don't think so..</p>
+
+<p>Besides the address shortage issue, there seem to be a whole lot of other problems with the Internet Protocol v4. While this is for sure true, is it really worth solving them all in the first step and making the primary purpose of IPv6 (=kill IPv4) that much more complicated and error-prone and therefore slower?</p>
+
+    <footer><p>--<br />(c) 2016 Nils Kraemer, last modified: 2016-07-02</p></footer>
+    <aside>
+        <h1>Comments</h1>
+        <p>Comments are on Twitter, use Hashtag <a href="https://twitter.com/search?f=tweets&q=%23lwbrd003&src=typd" target="_blank">#lwbrd003</a> to leave a comment.</p>
+    </aside>
+</article>
+
+</body>
+</html>
