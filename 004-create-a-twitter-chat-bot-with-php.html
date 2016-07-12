@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <title>Create A Twitter Chat-Bot with PHP .. in 5 minutes</title>
+
+    <link rel="alternate" type="application/rss+xml" title="RSS-Feed lowb1rd.github.io" href="/feed.xml" />
+
+    <meta name="description" content="" />
+	  <meta name="viewport" content="width=320, initial-scale=1, shrink-to-fit=no" />
+
+    <style>
+      body {
+        max-width: 620px;
+      }
+      body, p, h1, h2, h3 {
+          font-family: monospace;
+          font-size: 13px;
+      }
+      h1 {
+          xletter-spacing: 4px;
+          text-align: center;
+          margin-bottom: 2em;
+      }
+      h3 {
+          margin-left: 3em;
+      }
+      .pre, header {
+          white-space: pre-wrap;
+      }
+      article, aside {
+          padding-top: 2em;
+          padding-bottom: 2em;
+      }
+      p {
+          margin-left: 3em;
+          margin-right: 1em;
+      }
+      article pre, div.pre {
+          margin-left: 5em;
+      }
+      article a {
+          text-decoration: none;
+      }
+      article aside h1 {
+          text-align: left;
+          letter-spacing: 5px;
+          margin-bottom: 1em;
+      }
+      article footer {
+          color: #666;
+      }
+      .flr {
+        float: right;
+      }
+    </style>
+</head>
+<body>
+
+<p><a href="index.html">[index]</a> <a href="/comment/004-create-a-twitter-chat-bot-with-php.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd004&src=typd" target="_blank">[comment]</a></p>
+
+<header>
+<span class='fll'>lowb1rd.github.io</span><span class='flr'>July 2016</span>
+<span style="clear: both;">Category: tech</span>
+Blog Entry: 004</header>
+
+<article>
+    <h1>Create A Twitter Chat-Bot with PHP .. in 5 minutes</h1>
+<p>We want to set up a simple Twitter chatbot that just replies with whatever we say to it. The bot has to react in an instant so we will be using the <a href="https://dev.twitter.com/streaming/userstreams">Twitter Streaming API</a> to stay permanently connected to Twitter. Since we do not have the time to fiddle with the connection details, we'll be using the very nice <a href="https://github.com/fennb/phirehose">Phirehose PHP library</a> for this task. For replying we are simply using <a href="https://dev.twitter.com/rest/reference/post/direct_messages/new">Twitters REST API</a>.</p>
+
+<p><strong>1.</strong> You need a Twitter Account with a confirmed phone number for your bot. <a href="https://twitter.com/signup">Create a regular Twitter Account here</a> real quick.</p>
+
+<p><strong>2.</strong> Login and go to <a href="https://apps.twitter.com">apps.twitter.com</a>, click the "Create New App" Button. Choose any Name, Description and Website URL - nobody will ever see this. Leave the Callback URL empty.</p>
+
+<p><strong>3.</strong> Get all the tokens needed for authentication: Click on the app created, then "Keys and Access Tokens", copy <strong>Consumer Key (API Key)</strong> (A) and <strong>Consumer Secret (API Secret)</strong> (B), change access level to include Direct Messages, scroll down to "Access Token" and create a new token there. Copy <strong>Access Token</strong> (C) and <strong>Access Token Secret</strong> (D).</p>
+
+<p><strong>4.</strong> Download/Clone Phirehose. We only need the three PHP files in the lib dir. Create a new php file that will be our bot entry "executable". Replace the four Tokens/Secrets collected above (A/B/C/D).</p>
+
+<div class="pre php" style="font-family:monospace;"><span style="color: #000000; font-weight: bold;">&lt;?php</span>
+<span style="color: #b1b100;">require_once</span><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">'UserstreamPhirehose.php'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+&nbsp;
+<span style="color: #000000; font-weight: bold;">class</span> TwitterChatBot <span style="color: #000000; font-weight: bold;">extends</span> UserstreamPhirehose <span style="color: #009900;">&#123;</span>
+    <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> enqueueStatus<span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
+        <span style="color: #000088;">$data</span> <span style="color: #339933;">=</span> <a href="http://www.php.net/json_decode"><span style="color: #990000;">json_decode</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #339933;">,</span> <span style="color: #009900; font-weight: bold;">true</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+        <span style="color: #b1b100;">echo</span> <a href="http://www.php.net/date"><span style="color: #990000;">date</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;Y-m-d H:i:s (&quot;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><a href="http://www.php.net/strlen"><span style="color: #990000;">strlen</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><span style="color: #0000ff;">&quot;):&quot;</span><span style="color: #339933;">.</span><a href="http://www.php.net/print_r"><span style="color: #990000;">print_r</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$data</span><span style="color: #339933;">,</span><span style="color: #009900; font-weight: bold;">true</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><span style="color: #0000ff;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span><span style="color: #339933;">;</span>
+    <span style="color: #009900;">&#125;</span>
+<span style="color: #009900;">&#125;</span>
+&nbsp;
+<a href="http://www.php.net/define"><span style="color: #990000;">define</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">'TWITTER_CONSUMER_KEY'</span><span style="color: #339933;">,</span> <span style="color: #0000ff;">'A'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<a href="http://www.php.net/define"><span style="color: #990000;">define</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">'TWITTER_CONSUMER_SECRET'</span><span style="color: #339933;">,</span> <span style="color: #0000ff;">'B'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<a href="http://www.php.net/define"><span style="color: #990000;">define</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">'OAUTH_TOKEN'</span><span style="color: #339933;">,</span> <span style="color: #0000ff;">'C'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<a href="http://www.php.net/define"><span style="color: #990000;">define</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">'OAUTH_SECRET'</span><span style="color: #339933;">,</span> <span style="color: #0000ff;">'D'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+&nbsp;
+<span style="color: #666666; font-style: italic;">// Start streaming</span>
+<span style="color: #000088;">$sc</span> <span style="color: #339933;">=</span> <span style="color: #000000; font-weight: bold;">new</span> TwitterChatBot<span style="color: #009900;">&#40;</span>OAUTH_TOKEN<span style="color: #339933;">,</span> OAUTH_SECRET<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+<span style="color: #000088;">$sc</span><span style="color: #339933;">-&gt;</span><span style="color: #004000;">consume</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span></div>
+
+<p><strong>5.</strong> Run this on the CLI. It should instantly print out the data whenever the bot receives a direct message. Send a message to the bot's Twitter account from another account. Do not forget to friend each other before or enable to receive direct messages from unknown people in the security settings of the bot's account.</p>
+
+<p><strong>6.</strong> We are using the oAuth procedure from Phirehose to craft our REST API call for the reply. Replace the TwitterChatBot class above with the following:</p>
+
+<div class="pre php" style="font-family:monospace;"><ol start="1"><li><span style="color: #000000; font-weight: bold;">class</span> TwitterChatBot <span style="color: #000000; font-weight: bold;">extends</span> UserstreamPhirehose <span style="color: #009900;">&#123;</span>
+</li><li>    <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> enqueueStatus<span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
+</li><li>        <span style="color: #000088;">$data</span> <span style="color: #339933;">=</span> <a href="http://www.php.net/json_decode"><span style="color: #990000;">json_decode</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #339933;">,</span> <span style="color: #009900; font-weight: bold;">true</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #b1b100;">echo</span> <a href="http://www.php.net/date"><span style="color: #990000;">date</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;Y-m-d H:i:s (&quot;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><a href="http://www.php.net/strlen"><span style="color: #990000;">strlen</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$status</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><span style="color: #0000ff;">&quot;):&quot;</span><span style="color: #339933;">.</span><a href="http://www.php.net/print_r"><span style="color: #990000;">print_r</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$data</span><span style="color: #339933;">,</span><span style="color: #009900; font-weight: bold;">true</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">.</span><span style="color: #0000ff;">&quot;<span style="color: #000099; font-weight: bold;">\n</span>&quot;</span><span style="color: #339933;">;</span>
+</li><li>&nbsp;
+</li><li>        <span style="color: #b1b100;">if</span> <span style="color: #009900;">&#40;</span><a href="http://www.php.net/isset"><span style="color: #990000;">isset</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$data</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'direct_message'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#41;</span> <span style="color: #339933;">&amp;&amp;</span> <span style="color: #000088;">$data</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'direct_message'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'screen_name'</span><span style="color: #009900;">&#93;</span> <span style="color: #339933;">!=</span> <span style="color: #0000ff;">'#BOT_SCREENNAME#'</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
+</li><li>            <span style="color: #000088;">$msg</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$data</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'direct_message'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'text'</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
+</li><li>            <span style="color: #000088;">$id</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$data</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'direct_message'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'sender_id'</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
+</li><li>&nbsp;
+</li><li>            <span style="color: #000088;">$this</span><span style="color: #339933;">-&gt;</span><span style="color: #004000;">msg</span><span style="color: #009900;">&#40;</span><span style="color: #000088;">$id</span><span style="color: #339933;">,</span> <span style="color: #000088;">$msg</span> <span style="color: #339933;">.</span> <span style="color: #0000ff;">'!'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #009900;">&#125;</span>
+</li><li>    <span style="color: #009900;">&#125;</span>
+</li><li>    <span style="color: #000000; font-weight: bold;">public</span> <span style="color: #000000; font-weight: bold;">function</span> msg<span style="color: #009900;">&#40;</span><span style="color: #000088;">$to</span><span style="color: #339933;">,</span> <span style="color: #000088;">$text</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
+</li><li>        <span style="color: #000088;">$url</span> <span style="color: #339933;">=</span> <span style="color: #0000ff;">'https://api.twitter.com/1.1/direct_messages/new.json'</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #000088;">$req</span> <span style="color: #339933;">=</span> <span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'user_id'</span> <span style="color: #339933;">=&gt;</span> <span style="color: #000088;">$to</span><span style="color: #339933;">,</span> <span style="color: #0000ff;">'text'</span> <span style="color: #339933;">=&gt;</span> <span style="color: #000088;">$text</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #000088;">$auth</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$this</span><span style="color: #339933;">-&gt;</span><span style="color: #004000;">getAuthorizationHeader</span><span style="color: #009900;">&#40;</span><span style="color: #000088;">$url</span><span style="color: #339933;">,</span> <span style="color: #000088;">$req</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #000088;">$context</span> <span style="color: #339933;">=</span> <a href="http://www.php.net/stream_context_create"><span style="color: #990000;">stream_context_create</span></a><span style="color: #009900;">&#40;</span><a href="http://www.php.net/array"><span style="color: #990000;">array</span></a><span style="color: #009900;">&#40;</span>
+</li><li>            <span style="color: #0000ff;">'http'</span> <span style="color: #339933;">=&gt;</span> <a href="http://www.php.net/array"><span style="color: #990000;">array</span></a><span style="color: #009900;">&#40;</span>
+</li><li>                <span style="color: #0000ff;">'method'</span> <span style="color: #339933;">=&gt;</span> <span style="color: #0000ff;">'POST'</span><span style="color: #339933;">,</span>
+</li><li>                <span style="color: #0000ff;">'header'</span>  <span style="color: #339933;">=&gt;</span> <span style="color: #0000ff;">&quot;Authorization: &quot;</span> <span style="color: #339933;">.</span> <span style="color: #000088;">$auth</span><span style="color: #339933;">,</span>
+</li><li>                <span style="color: #0000ff;">'content'</span> <span style="color: #339933;">=&gt;</span> <a href="http://www.php.net/http_build_query"><span style="color: #990000;">http_build_query</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$req</span><span style="color: #009900;">&#41;</span>
+</li><li>            <span style="color: #009900;">&#41;</span>
+</li><li>        <span style="color: #009900;">&#41;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+</li><li>        <span style="color: #000088;">$data</span> <span style="color: #339933;">=</span> <a href="http://www.php.net/file_get_contents"><span style="color: #990000;">file_get_contents</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$url</span><span style="color: #339933;">,</span> <span style="color: #009900; font-weight: bold;">false</span><span style="color: #339933;">,</span> <span style="color: #000088;">$context</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
+</li><li>    <span style="color: #009900;">&#125;</span>
+</li><li><span style="color: #009900;">&#125;</span></li></ol></div>
+
+<p><strong>Important:</strong> Replace <em>#BOT_SCREENNAME#</em> in line 6 with the screen name of your bot. Messages sent from the bot will also come in via the streaming API so we have to exclude these to prevent an infinite loop.</p>
+
+<p><strong>7.</strong> We're done!</p>
+
+<p><img src="/images/twitter-bot.png" alt="Twitter bot" /></p>
+
+    <footer><p>--<br />(c) 2016 Nils Kraemer, last modified: 2016-07-12</p></footer>
+    <aside>
+        <h1>Comments</h1>
+        <p>Comments are on Twitter, use Hashtag <a href="https://twitter.com/search?f=tweets&q=%23lwbrd004&src=typd" target="_blank">#lwbrd004</a> to leave a comment.</p>
+    </aside>
+</article>
+
+</body>
+</html>
