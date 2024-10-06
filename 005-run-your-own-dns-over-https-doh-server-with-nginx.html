@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <title>Run your own DNS-over-HTTPS (DoH) Server with NGINX</title>
+
+    <link rel="alternate" type="application/rss+xml" title="RSS-Feed lowb1rd.github.io" href="/feed.xml" />
+
+    <meta name="description" content="" />
+	  <meta name="viewport" content="width=320, initial-scale=1, shrink-to-fit=no" />
+
+    <style>
+      body {
+        max-width: 620px;
+      }
+      body, p, h1, h2, h3 {
+          font-family: monospace;
+          font-size: 13px;
+		  line-height: 1.5;
+      }
+      h1 {
+          text-align: center;
+          margin-bottom: 2em;
+      }
+      h3 {
+          margin-left: 3em;
+      }
+      .pre, header {
+          white-space: pre-wrap;
+      }
+      article, aside {
+          padding-top: 2em;
+          padding-bottom: 2em;
+      }
+      p {
+          margin-left: 3em;
+          margin-right: 1em;
+      }
+      article pre, div.pre {
+          margin-left: 0em;
+	  width: calc(100vw - 36px);
+      }
+      article a {
+          text-decoration: none;
+      }
+	  article ul {
+		  margin-left: 3em;
+		  padding: 0;
+	  }
+	  article ul li {
+		  position: relative;
+		  list-style: none;
+		  line-height: 1.7;
+		  margin-left: 1.5em;
+	  }
+	  article ul li:before {
+		  content: "*";
+		  position: absolute;
+		  left: -15px;
+	  }
+      article aside h1 {
+          text-align: left;
+          letter-spacing: 5px;
+          margin-bottom: 1em;
+      }
+      article footer {
+          color: #666;
+      }
+      .flr {
+        float: right;
+      }
+	  code {
+		  font-weight: bold;
+	  }
+	  pre code {
+		  font-weight: normal;
+	  }
+      /* a11y-light theme */
+/* Based on the Tomorrow Night Eighties theme: https://github.com/isagalaev/highlight.js/blob/master/src/styles/tomorrow-night-eighties.css */
+/* @author: ericwbailey */
+
+/* Comment */
+.hljs-comment,
+.hljs-quote {
+  color: #696969;
+}
+
+/* Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  color: #d91e18;
+}
+
+/* Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+  color: #aa5d00;
+}
+
+/* Yellow */
+.hljs-attribute {
+  color: #aa5d00;
+}
+
+/* Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #008000;
+}
+
+/* Blue */
+.hljs-title,
+.hljs-section {
+  color: #007faa;
+}
+
+/* Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #7928a1;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  background: #fefefe;
+  color: #545454;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+.highlighted {
+	  background: #eee;
+}
+
+    </style>
+</head>
+<body>
+
+<p><a href="index.html">[index]</a> <a href="./005-run-your-own-dns-over-https-doh-server-with-nginx.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd005&src=typd" target="_blank">[comment]</a></p>
+
+<header>
+<span class='fll'>lowb1rd.github.io</span><span class='flr'>October 2024</span>
+<span style="clear: both;">Category: linux</span>
+Blog Entry: 005</header>
+
+<article>
+    <h1>Run your own DNS-over-HTTPS (DoH) Server with NGINX</h1>
+<p>I run an DNS-Server (<code>dnsmasq</code>) on my local network to block certain Domains so that they don't deliver ads to me. I simply use <code>dnsmasq</code> with a list of additional hosts that are mapped to &quot;0.0.0.0&quot;. This is very much like Pihole, but DIY.</p>
+<p>For the fun of it, I wanted to provide the DNS service not only via TCP/UDP 53, but also via the all new and fancy HTTP protocol.</p>
+<p>I decided to stay with <code>dnsmasq</code> and let the HTTPS part be handled by <code>nginx</code>. Why:</p>
+<ul>
+<li>I tried some DNS-Servers with included DoH support (bind, unbound and DNSdist). They were all working but could not handle the blocklist of one million domains as quickly as <code>dnsmasq</code> does</li>
+<li>My server already has NGINX running - with a standalone DoH-Server I would have to use another port or another ip address for DoH</li>
+</ul>
+<p>So we let <code>nginx</code> handle the TLS termination and the proxying to the dns server. Caching, domain blocking and request forwarding is handled by <code>dnsmasq</code>. Every tool does what it is primarily designed for. Sounds good!</p>
+<p>But we can't simple proxy the HTTP protocol to dnsmasq. We have to get the HTTP-Body (if DoH-Post) or the <code>dns</code> query parameter, base64-decoded (if DoH-Get). A <a href="https://www.f5.com/company/blog/nginx/using-nginx-as-dot-doh-gateway">DoH guide from Nginx</a> suggests to use the nginx JavaScript Module &quot;NJS&quot; and the &quot;<a href="https://github.com/TuxInvader/nginx-dns/">nginx-dns</a>&quot; scripts from TuxInvader.</p>
+<p>I have tried that - but it wasn't working very well. After <a href="https://github.com/TuxInvader/nginx-dns/issues/26">patching</a> the script things were working. However, having DNS-Requests parsed and mangled by JavaScript within a webserver process seems a little odd to me. So I decided to strip the script down to the bare essentials of getting the DNS payload.</p>
+<h2>Settings things up</h2>
+<p>We need NJS support in nginx. For debian there is the package <code>libnginx-mod-stream-js</code></p>
+<pre><code class="language- hljs " data-lang="">apt install nginx libnginx-mod-stream-js
+</code></pre>
+<h3>Create the NJS-Script - <code>vi /etc/nginx/doh.js</code>:</h3>
+<pre><code class="language-js hljs javascript" data-lang="js"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handle_request</span>(<span class="hljs-params">s</span>) </span>{
+	s.on(<span class="hljs-string">"upstream"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data,flags</span>) </span>{
+		<span class="hljs-keyword">if</span> ( data.length == <span class="hljs-number">0</span> ) {
+			<span class="hljs-keyword">return</span>;
+		}
+		<span class="hljs-keyword">var</span> bytes;
+		<span class="hljs-keyword">if</span> (data.toString(<span class="hljs-string">'utf8'</span>, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>) == <span class="hljs-string">"GET"</span>) {
+			<span class="hljs-keyword">const</span> path = data.toString(<span class="hljs-string">'utf8'</span>, <span class="hljs-number">4</span>, data.indexOf(<span class="hljs-string">' '</span>, <span class="hljs-number">4</span>));
+			<span class="hljs-keyword">const</span> params = path.split(<span class="hljs-string">"?"</span>)[<span class="hljs-number">1</span>];
+			<span class="hljs-keyword">if</span> (!params) <span class="hljs-keyword">return</span>;
+			<span class="hljs-keyword">const</span> qs = params.split(<span class="hljs-string">"&amp;"</span>);
+			qs.some(<span class="hljs-function"><span class="hljs-params">param</span> =&gt;</span> {
+				<span class="hljs-keyword">if</span> (param.startsWith(<span class="hljs-string">"dns="</span>) ) {
+					bytes = Buffer.from(param.slice(<span class="hljs-number">4</span>), <span class="hljs-string">"base64url"</span>);
+				}
+			});
+		}
+
+		<span class="hljs-keyword">if</span>(data.toString(<span class="hljs-string">'utf8'</span>, <span class="hljs-number">0</span>, <span class="hljs-number">4</span>) == <span class="hljs-string">"POST"</span>) {
+			bytes = data.slice(data.indexOf(<span class="hljs-string">'\r\n\r\n'</span>) + <span class="hljs-number">4</span>);
+		}
+
+		<span class="hljs-keyword">if</span> (bytes) {
+			s.send( to_bytes(bytes.length) );
+			s.send( bytes, {<span class="hljs-attr">flush</span>: <span class="hljs-literal">true</span>} );
+		} <span class="hljs-keyword">else</span> {
+			s.send(<span class="hljs-string">""</span>);
+		}
+	});
+
+	s.on(<span class="hljs-string">"downstream"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">data, flags</span>) </span>{
+		<span class="hljs-keyword">if</span> ( data.length == <span class="hljs-number">0</span> ) {
+			<span class="hljs-keyword">return</span>;
+		}
+		<span class="hljs-comment">// Drop the TCP length field</span>
+		data = data.slice(<span class="hljs-number">2</span>);
+
+		s.send(<span class="hljs-string">"HTTP/1.1 200\r\nConnection: Keep-Alive\r\nKeep-Alive: timeout=60, max=1000\r\nContent-Type: application/dns-message\r\nContent-Length:"</span> + data.length + <span class="hljs-string">"\r\n"</span>);
+		s.send(<span class="hljs-string">"\r\n"</span>);
+		s.send(data, {<span class="hljs-attr">flush</span>: <span class="hljs-literal">true</span>});
+	});
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">to_bytes</span>(<span class="hljs-params">number</span>) </span>{
+	<span class="hljs-keyword">return</span> Buffer.from([((number&gt;&gt;<span class="hljs-number">8</span>) &amp; <span class="hljs-number">0xff</span>), (number &amp; <span class="hljs-number">0xff</span>)]);
+}
+</code></pre>
+<p>The script above gets the DNS binary payload and is invoked by an nginx stream service:</p>
+<h3>Add this to nginx-config - <code>vi /etc/nginx/nginx.conf</code>:</h3>
+<pre><code class="language-js hljs javascript" data-lang="js"><span class="loc">stream {</span>
+<span class="loc">	js_import /etc/nginx/doh.js;</span>
+<span class="loc"></span>
+<span class="loc">	upstream dnsmasq {</span>
+<span class="loc">		zone dns <span class="hljs-number">64</span>k;</span>
+<span class="loc">		server <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:<span class="hljs-number">53</span>;</span>
+<span class="loc highlighted">		server <span class="hljs-number">8.8</span><span class="hljs-number">.8</span><span class="hljs-number">.8</span>:<span class="hljs-number">53</span> backup;</span>
+<span class="loc">	}</span>
+<span class="loc">	server {</span>
+<span class="loc">		listen <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:<span class="hljs-number">8053</span>;</span>
+<span class="loc">		js_filter doh.handle_request;</span>
+<span class="loc">		proxy_pass dnsmasq;</span>
+<span class="loc">	}</span>
+<span class="loc">}</span>
+<span class="loc"></span></code></pre>
+<p>This is our middleware. It gets the DoH-Request from the vhost, extracts the binary DNS query and passes it to a local DNS server. A fallback DNS server (line 7) can also be defined.</p>
+<h3>Last step: Setup the DoH vhost endpoint - <code>vi /etc/nginx/sites-enabled/default</code>:</h3>
+<pre><code class="language-php hljs php" data-lang="php">upstream dohloop {
+	zone dohloop <span class="hljs-number">64</span>k;
+	server <span class="hljs-number">127.0</span><span class="hljs-number">.0</span><span class="hljs-number">.1</span>:<span class="hljs-number">8053</span>;
+	keepalive_timeout <span class="hljs-number">60</span>s;
+	keepalive_requests <span class="hljs-number">100</span>;
+	keepalive <span class="hljs-number">10</span>;
+}
+server {
+	listen <span class="hljs-number">443</span> ssl http2;
+	listen [::]:<span class="hljs-number">443</span> ssl http2;
+
+	server_name xxx;
+	ssl_certificate xxx;
+	ssl_certificate_key xxx;
+
+	location /dns-query {
+		proxy_http_version <span class="hljs-number">1.1</span>;
+		proxy_set_header Connection <span class="hljs-string">""</span>;
+
+		proxy_pass http:<span class="hljs-comment">//dohloop;</span>
+	}
+}
+</code></pre>
+<p>This is the regular vhost that receives the DoH request on <code>/dns-query</code> and passes it to the middleware.</p>
+<h2>Test it</h2>
+<p><code>Dig</code> can be used to test DoH:</p>
+<pre><code class="language-javascript hljs javascript" data-lang="javascript">dig +https @your-server.com A example.org
+dig +https-<span class="hljs-keyword">get</span> @your-server.com A example.org
+</code></pre>
+
+    <footer><p>--<br />(c) 2024 Nils Kraemer, last modified: 2024-10-06</p></footer>
+    <aside>
+        <h1>Comments</h1>
+        <p>Comments are on Twitter, use Hashtag <a href="https://twitter.com/search?f=tweets&q=%23lwbrd005&src=typd" target="_blank">#lwbrd005</a> to leave a comment.</p>
+    </aside>
+</article>
+
+</body>
+</html>
