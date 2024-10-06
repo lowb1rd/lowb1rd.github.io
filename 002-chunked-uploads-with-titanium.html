@@ -13,17 +13,20 @@
       body {
         max-width: 620px;
       }
-      body, p, h1, h2 {
+      body, p, h1, h2, h3 {
           font-family: monospace;
           font-size: 13px;
+		  line-height: 1.5;
       }
       h1 {
-          xletter-spacing: 4px;
           text-align: center;
           margin-bottom: 2em;
       }
+      h3 {
+          margin-left: 3em;
+      }
       .pre, header {
-          white-space: pre;
+          white-space: pre-wrap;
       }
       article, aside {
           padding-top: 2em;
@@ -34,11 +37,27 @@
           margin-right: 1em;
       }
       article pre, div.pre {
-          margin-left: 5em;
+          margin-left: 0em;
+	  width: calc(100vw - 36px);
       }
       article a {
           text-decoration: none;
       }
+	  article ul {
+		  margin-left: 3em;
+		  padding: 0;
+	  }
+	  article ul li {
+		  position: relative;
+		  list-style: none;
+		  line-height: 1.7;
+		  margin-left: 1.5em;
+	  }
+	  article ul li:before {
+		  content: "*";
+		  position: absolute;
+		  left: -15px;
+	  }
       article aside h1 {
           text-align: left;
           letter-spacing: 5px;
@@ -50,11 +69,95 @@
       .flr {
         float: right;
       }
+	  code {
+		  font-weight: bold;
+	  }
+	  pre code {
+		  font-weight: normal;
+	  }
+      /* a11y-light theme */
+/* Based on the Tomorrow Night Eighties theme: https://github.com/isagalaev/highlight.js/blob/master/src/styles/tomorrow-night-eighties.css */
+/* @author: ericwbailey */
+
+/* Comment */
+.hljs-comment,
+.hljs-quote {
+  color: #696969;
+}
+
+/* Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  color: #d91e18;
+}
+
+/* Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+  color: #aa5d00;
+}
+
+/* Yellow */
+.hljs-attribute {
+  color: #aa5d00;
+}
+
+/* Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #008000;
+}
+
+/* Blue */
+.hljs-title,
+.hljs-section {
+  color: #007faa;
+}
+
+/* Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #7928a1;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  background: #fefefe;
+  color: #545454;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+.highlighted {
+	  background: #eee;
+}
+
     </style>
 </head>
 <body>
 
-<p><a href="index.html">[index]</a> <a href="/comment/002-chunked-uploads-with-titanium.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd002&src=typd" target="_blank">[comment]</a></p>
+<p><a href="index.html">[index]</a> <a href="./002-chunked-uploads-with-titanium.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd002&src=typd" target="_blank">[comment]</a></p>
 
 <header>
 <span class='fll'>lowb1rd.github.io</span><span class='flr'>October 2015</span>
@@ -64,128 +167,111 @@ Blog Entry: 002</header>
 <article>
     <h1>Chunked Uploads with Titanium</h1>
 <p>The request and the response of Titanium's HTTPClient (<a href="http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Network.HTTPClient">Ti.Network.HTTPClient</a>) is built entirely in memory. This means that your app will crash with a memory exception when you try up- or downloading large data. It depends on the smartphone's hardware, but the trouble starts at about 100 MB of request/response data.</p>
-
 <h2>Status Quo</h2>
-
 <p>For large resonse data (i.e. downloads), there is the <a href="http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Network.HTTPClient-property-file"><em>file</em></a> property of the HTTPClient object. This writes the response directly to that file avoiding memory issues. For the request part (i.e. upload), no such property exists.</p>
-
 <p>The HTTPClient implementation for Android does detect file resources in the request data and streams directly from the file instead of loading it into memory.</p>
-
 <h2>TiHTTPClient vs. APSHTTPClient</h2>
-
 <p>Titanium did handle (and still does under Android) file uploads from a file handle well, but with the release of Titanium SDK 3.3.0, the TiHTTPClient was replaced by the APSHTTPClient lib <a href="https://jira.appcelerator.org/browse/TIMOB-16883">[TIMOB-16883]</a>. From there on, file uploads from a file handle were not streamed from the filesystem but converted to a blob. When the request was finally build in memory large blobs (files) cause the app to fail with memory error.</p>
-
 <p>Before TiSDK3.3.0, the following code did manage large file uploads well. From TiDSK3.3.0 the file handle was converted to a blob making the build of the request fail for large files.</p>
-
-<div class="pre javascript" style="font-family:monospace;"><span style="color: #003366; font-weight: bold;">var</span> file <span style="color: #339933;">=</span> Ti.<span style="color: #660066;">Filesystem</span>.<span style="color: #660066;">getFile</span><span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'large_file.mp4'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-<span style="color: #003366; font-weight: bold;">var</span> xhr <span style="color: #339933;">=</span> Ti.<span style="color: #660066;">Network</span>.<span style="color: #660066;">HTTPCLient</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-xhr.<span style="color: #000066;">open</span><span style="color: #009900;">&#40;</span>..<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-xhr.<span style="color: #660066;">send</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#123;</span>
-    data<span style="color: #339933;">:</span> file
-<span style="color: #009900;">&#125;</span><span style="color: #009900;">&#41;</span></div>
-
+<pre><code class="language-php hljs php" data-lang="php"><span class="hljs-keyword">var</span> file = Ti.Filesystem.getFile(<span class="hljs-string">'large_file.mp4'</span>);
+<span class="hljs-keyword">var</span> xhr = Ti.Network.HTTPCLient();
+xhr.open(..);
+xhr.send({
+	data: file
+})
+</code></pre>
 <p>The APSHTTPClient library uses the common NSURLConnection and could be adopted to stream files from the filesystem instead of putting them in memory. I really tried to do it but things get quite complicated real quick when you have to craft the multipart HTTP POST request by yourself. And since the APSHTTPClient is an external lib, it's even harder to hack something into it. There has to be a simpler way..</p>
-
 <h2>What about chunking?</h2>
-
 <p>The idea would be to split up large uploads in chunks, send them one by one to the server. Since a single chunk is small, there will be no memory issues. Another bonus is that if an upload request fails, you do not have to start all over again, but can retry from the current chunk.</p>
-
 <p>Titanium has everything on board that is needed for chunking, mainly <a href="http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Buffer">Ti.Buffer</a> and <a href="http://docs.appcelerator.com/platform/latest/#!/api/Titanium.Stream">Ti.Stream</a>. Yay.</p>
-
 <p>Let's assume we want to record a video from the camera with <em>Ti.Media.ShowCamera()</em> and upload that video to a server. Sounds easy enough - but it will fail for long videos <strong>under iOS</strong> because of the too large request body of the HTTPClient. For example, on an iPhone6, the app will crash when the recorded video is longer than 2 minutes.</p>
-
 <h2>Simple XHR upload example with file chunks</h2>
-
 <p>This is a common JS example module (save as xhr.js):</p>
+<pre><code class="language-javascript hljs javascript" data-lang="javascript">exports.chunkedXHR = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">url, file, callback</span>) </span>{
+	<span class="hljs-keyword">var</span> chunk_size = <span class="hljs-number">1048576</span> * <span class="hljs-number">50</span>; <span class="hljs-comment">// 50M</span>
+	<span class="hljs-keyword">var</span> that = <span class="hljs-keyword">this</span>;
+	<span class="hljs-keyword">var</span> xhr = Ti.Network.createHTTPClient();
 
-<div class="pre javascript" style="font-family:monospace;">exports.<span style="color: #660066;">chunkedXHR</span> <span style="color: #339933;">=</span> <span style="color: #003366; font-weight: bold;">function</span><span style="color: #009900;">&#40;</span>url<span style="color: #339933;">,</span> file<span style="color: #339933;">,</span> callback<span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> chunk_size <span style="color: #339933;">=</span> <span style="color: #CC0000;">1048576</span> <span style="color: #339933;">*</span> <span style="color: #CC0000;">50</span><span style="color: #339933;">;</span> <span style="color: #006600; font-style: italic;">// 50M</span>
-    <span style="color: #003366; font-weight: bold;">var</span> that <span style="color: #339933;">=</span> <span style="color: #000066; font-weight: bold;">this</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> xhr <span style="color: #339933;">=</span> Ti.<span style="color: #660066;">Network</span>.<span style="color: #660066;">createHTTPClient</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-&nbsp;
-    <span style="color: #003366; font-weight: bold;">var</span> size <span style="color: #339933;">=</span> file.<span style="color: #660066;">size</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> chunks <span style="color: #339933;">=</span> Math.<span style="color: #660066;">ceil</span><span style="color: #009900;">&#40;</span>size<span style="color: #339933;">/</span>chunk_size<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> stream <span style="color: #339933;">=</span> file.<span style="color: #000066;">open</span><span style="color: #009900;">&#40;</span>Ti.<span style="color: #660066;">Filesystem</span>.<span style="color: #660066;">MODE_READ</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> buffer <span style="color: #339933;">=</span> Ti.<span style="color: #660066;">createBuffer</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#123;</span>length<span style="color: #339933;">:</span> chunk_size<span style="color: #009900;">&#125;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> chunk <span style="color: #339933;">=</span> <span style="color: #CC0000;">1</span><span style="color: #339933;">;</span>
-    <span style="color: #003366; font-weight: bold;">var</span> bytes <span style="color: #339933;">=</span> <span style="color: #CC0000;">0</span><span style="color: #339933;">;</span>
-&nbsp;
-    <span style="color: #003366; font-weight: bold;">var</span> <span style="color: #000066;">onload</span> <span style="color: #339933;">=</span> <span style="color: #003366; font-weight: bold;">function</span><span style="color: #009900;">&#40;</span>e<span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-        <span style="color: #000066; font-weight: bold;">if</span> <span style="color: #009900;">&#40;</span>chunks <span style="color: #339933;">==</span> chunk<span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-            buffer.<span style="color: #660066;">release</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-            callback<span style="color: #009900;">&#40;</span><span style="color: #003366; font-weight: bold;">true</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        <span style="color: #009900;">&#125;</span> <span style="color: #000066; font-weight: bold;">else</span> <span style="color: #009900;">&#123;</span>
-            chunk<span style="color: #339933;">++;</span>
-            go<span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        <span style="color: #009900;">&#125;</span>
-    <span style="color: #009900;">&#125;</span>
-&nbsp;
-    xhr.<span style="color: #000066;">onerror</span> <span style="color: #339933;">=</span> <span style="color: #003366; font-weight: bold;">function</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-        callback<span style="color: #009900;">&#40;</span><span style="color: #003366; font-weight: bold;">false</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-    <span style="color: #009900;">&#125;</span><span style="color: #339933;">;</span>
-    xhr.<span style="color: #000066;">onload</span> <span style="color: #339933;">=</span> <span style="color: #000066;">onload</span><span style="color: #339933;">;</span>
-&nbsp;
-    <span style="color: #003366; font-weight: bold;">var</span> go <span style="color: #339933;">=</span> <span style="color: #003366; font-weight: bold;">function</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-        <span style="color: #000066; font-weight: bold;">if</span> <span style="color: #009900;">&#40;</span>chunk <span style="color: #339933;">==</span> chunks<span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-            <span style="color: #006600; font-style: italic;">// last chunk</span>
-            <span style="color: #003366; font-weight: bold;">var</span> length <span style="color: #339933;">=</span> size <span style="color: #339933;">-</span> chunk_size<span style="color: #339933;">*</span><span style="color: #009900;">&#40;</span>chunk<span style="color: #339933;">-</span><span style="color: #CC0000;">1</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-            buffer.<span style="color: #660066;">setLength</span><span style="color: #009900;">&#40;</span>length<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        <span style="color: #009900;">&#125;</span>
-        bytes <span style="color: #339933;">=</span> stream.<span style="color: #660066;">read</span><span style="color: #009900;">&#40;</span>buffer<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        <span style="color: #000066; font-weight: bold;">if</span> <span style="color: #009900;">&#40;</span><span style="color: #339933;">!</span>bytes<span style="color: #009900;">&#41;</span> <span style="color: #000066; font-weight: bold;">return</span><span style="color: #339933;">;</span>
-        <span style="color: #003366; font-weight: bold;">var</span> data <span style="color: #339933;">=</span> <span style="color: #009900;">&#123;</span><span style="color: #009900;">&#125;</span><span style="color: #339933;">;</span>
-        data.<span style="color: #660066;">data</span> <span style="color: #339933;">=</span> buffer.<span style="color: #660066;">toBlob</span><span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        data.<span style="color: #660066;">chunk</span> <span style="color: #339933;">=</span> chunk<span style="color: #339933;">;</span>
-        data.<span style="color: #660066;">chunks</span> <span style="color: #339933;">=</span> chunks<span style="color: #339933;">;</span>
-        data.<span style="color: #660066;">filename</span> <span style="color: #339933;">=</span> file.<span style="color: #000066;">name</span><span style="color: #339933;">;</span>
-&nbsp;
-        xhr.<span style="color: #000066;">open</span><span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'POST'</span><span style="color: #339933;">,</span> url<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-        xhr.<span style="color: #660066;">send</span><span style="color: #009900;">&#40;</span>data<span style="color: #339933;">||</span><span style="color: #009900;">&#123;</span><span style="color: #009900;">&#125;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-    <span style="color: #009900;">&#125;</span>
-    go<span style="color: #009900;">&#40;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-&nbsp;
-    <span style="color: #000066; font-weight: bold;">return</span> xhr<span style="color: #339933;">;</span>
-<span style="color: #009900;">&#125;</span></div>
+    <span class="hljs-keyword">var</span> size = file.size;
+	<span class="hljs-keyword">var</span> chunks = <span class="hljs-built_in">Math</span>.ceil(size/chunk_size);
+	<span class="hljs-keyword">var</span> stream = file.open(Ti.Filesystem.MODE_READ);
+	<span class="hljs-keyword">var</span> buffer = Ti.createBuffer({<span class="hljs-attr">length</span>: chunk_size});
+	<span class="hljs-keyword">var</span> chunk = <span class="hljs-number">1</span>;
+	<span class="hljs-keyword">var</span> bytes = <span class="hljs-number">0</span>;
 
+	<span class="hljs-keyword">var</span> onload = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">e</span>) </span>{
+		<span class="hljs-keyword">if</span> (chunks == chunk) {
+			buffer.release();
+			callback(<span class="hljs-literal">true</span>);
+		} <span class="hljs-keyword">else</span> {
+			chunk++;
+			go();
+		}
+	}
+
+	xhr.onerror = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+		callback(<span class="hljs-literal">false</span>);
+	};
+	xhr.onload = onload;
+
+	<span class="hljs-keyword">var</span> go = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+		<span class="hljs-keyword">if</span> (chunk == chunks) {
+			<span class="hljs-comment">// last chunk</span>
+			<span class="hljs-keyword">var</span> length = size - chunk_size*(chunk<span class="hljs-number">-1</span>);
+			buffer.setLength(length);
+		}
+		bytes = stream.read(buffer);
+		<span class="hljs-keyword">if</span> (!bytes) <span class="hljs-keyword">return</span>;
+		<span class="hljs-keyword">var</span> data = {};
+		data.data = buffer.toBlob();
+		data.chunk = chunk;
+		data.chunks = chunks;
+		data.filename = file.name;
+
+		xhr.open(<span class="hljs-string">'POST'</span>, url);
+		xhr.send(data||{});
+	}
+	go();
+
+	<span class="hljs-keyword">return</span> xhr;
+}
+</code></pre>
 <p>Usage:</p>
-
-<div class="pre javascript" style="font-family:monospace;"><span style="color: #003366; font-weight: bold;">var</span> xhr <span style="color: #339933;">=</span> require<span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'xhr'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-<span style="color: #003366; font-weight: bold;">var</span> file <span style="color: #339933;">=</span> Ti.<span style="color: #660066;">Filesystem</span>.<span style="color: #660066;">getFile</span><span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'large_file.mp4'</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-xhr.<span style="color: #660066;">chunkedXHR</span><span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'http://localhost/chunk.php'</span><span style="color: #339933;">,</span> file<span style="color: #339933;">,</span> <span style="color: #003366; font-weight: bold;">function</span><span style="color: #009900;">&#40;</span>success<span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-    Ti.<span style="color: #660066;">API</span>.<span style="color: #660066;">info</span><span style="color: #009900;">&#40;</span><span style="color: #3366CC;">'XHR callback: '</span> <span style="color: #339933;">+</span> success<span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-<span style="color: #009900;">&#125;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span></div>
-
+<pre><code class="language-php hljs php" data-lang="php"><span class="hljs-keyword">var</span> xhr = <span class="hljs-keyword">require</span>(<span class="hljs-string">'xhr'</span>);
+<span class="hljs-keyword">var</span> file = Ti.Filesystem.getFile(<span class="hljs-string">'large_file.mp4'</span>);
+xhr.chunkedXHR(<span class="hljs-string">'http://localhost/chunk.php'</span>, file, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(success)</span> </span>{
+	Ti.API.info(<span class="hljs-string">'XHR callback: '</span> + success);
+});
+</code></pre>
 <h2>Server-Side</h2>
-
 <p>The server will just concatenate the chunks. PHP example:</p>
+<pre><code class="language-php hljs php" data-lang="php"><span class="hljs-comment">// temporary file name</span>
+$tmp = $_FILES[<span class="hljs-string">'data'</span>][<span class="hljs-string">'tmp_name'</span>];
+<span class="hljs-comment">// real/final file name</span>
+$filename = $_POST[<span class="hljs-string">'filename'</span>];
+<span class="hljs-comment">// current chunk number (starts at 1)</span>
+$chunk = <span class="hljs-keyword">isset</span>($_POST[<span class="hljs-string">'chunk'</span>]) ? $_POST[<span class="hljs-string">'chunk'</span>] : <span class="hljs-number">0</span>;
 
-<div class="pre php" style="font-family:monospace;"><ol start="1"><li><span style="color: #666666; font-style: italic;">// temporary file name</span>
-</li><li><span style="color: #000088;">$tmp</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$_FILES</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'data'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'tmp_name'</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
-</li><li><span style="color: #666666; font-style: italic;">// real/final file name</span>
-</li><li><span style="color: #000088;">$filename</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$_POST</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'filename'</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
-</li><li><span style="color: #666666; font-style: italic;">// current chunk number (starts at 1)</span>
-</li><li><span style="color: #000088;">$chunk</span> <span style="color: #339933;">=</span> <a href="http://www.php.net/isset"><span style="color: #990000;">isset</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$_POST</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'chunk'</span><span style="color: #009900;">&#93;</span><span style="color: #009900;">&#41;</span> ? <span style="color: #000088;">$_POST</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'chunk'</span><span style="color: #009900;">&#93;</span> <span style="color: #339933;">:</span> <span style="color: #cc66cc;">0</span><span style="color: #339933;">;</span>
-</li><li>&nbsp;
-</li><li><span style="color: #b1b100;">if</span> <span style="color: #009900;">&#40;</span><span style="color: #000088;">$chunk</span> <span style="color: #339933;">&gt;</span> <span style="color: #cc66cc;">1</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-</li><li>    <span style="color: #666666; font-style: italic;">// this handles chunk nr 2..n</span>
-</li><li>    <span style="color: #666666; font-style: italic;">// number of chunks total</span>
-</li><li>    <span style="color: #000088;">$chunks</span> <span style="color: #339933;">=</span> <span style="color: #000088;">$_POST</span><span style="color: #009900;">&#91;</span><span style="color: #0000ff;">'chunks'</span><span style="color: #009900;">&#93;</span><span style="color: #339933;">;</span>
-</li><li>&nbsp;
-</li><li>    <span style="color: #666666; font-style: italic;">// just concatenate the chunk</span>
-</li><li>    <a href="http://www.php.net/exec"><span style="color: #990000;">exec</span></a><span style="color: #009900;">&#40;</span><span style="color: #0000ff;">&quot;cat <span style="color: #006699; font-weight: bold;">$tmp</span> &gt;&gt; <span style="color: #006699; font-weight: bold;">$filename</span>&quot;</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-</li><li>&nbsp;
-</li><li>    <span style="color: #b1b100;">if</span> <span style="color: #009900;">&#40;</span><span style="color: #000088;">$chunks</span> <span style="color: #339933;">==</span> <span style="color: #000088;">$chunk</span><span style="color: #009900;">&#41;</span> <span style="color: #009900;">&#123;</span>
-</li><li>        <span style="color: #666666; font-style: italic;">// $filename is now complete. do something!</span>
-</li><li>    <span style="color: #009900;">&#125;</span>
-</li><li>&nbsp;
-</li><li><span style="color: #009900;">&#125;</span> <span style="color: #b1b100;">else</span> <span style="color: #009900;">&#123;</span>
-</li><li>    <span style="color: #666666; font-style: italic;">// no chunking or first chunk. just move it</span>
-</li><li>    <a href="http://www.php.net/move_uploaded_file"><span style="color: #990000;">move_uploaded_file</span></a><span style="color: #009900;">&#40;</span><span style="color: #000088;">$tmp</span><span style="color: #339933;">,</span> <span style="color: #000088;">$filename</span><span style="color: #009900;">&#41;</span><span style="color: #339933;">;</span>
-</li><li><span style="color: #009900;">&#125;</span></li></ol></div>
+<span class="hljs-keyword">if</span> ($chunk &gt; <span class="hljs-number">1</span>) {
+	<span class="hljs-comment">// this handles chunk nr 2..n</span>
+	<span class="hljs-comment">// number of chunks total</span>
+	$chunks = $_POST[<span class="hljs-string">'chunks'</span>];
 
+	<span class="hljs-comment">// just concatenate the chunk</span>
+	exec(<span class="hljs-string">"cat $tmp &gt;&gt; $filename"</span>);
+
+	<span class="hljs-keyword">if</span> ($chunks == $chunk) {
+		<span class="hljs-comment">// $filename is now complete. do something!</span>
+	}
+
+} <span class="hljs-keyword">else</span> {
+	<span class="hljs-comment">// no chunking or first chunk. just move it</span>
+	move_uploaded_file($tmp, $filename);
+}
+</code></pre>
 <p>Please note that these examples are very basic and not meant for use in production. Chunks that failed to upload due to a connection problem should be retried. This makes chunked uploads also valuable for Android because the upload does not start from the very beginning every time a timeout occurs.</p>
 
-    <footer><p>--<br />(c) 2016 Nils Kraemer, last modified: 2016-05-26</p></footer>
+    <footer><p>--<br />(c) 2024 Nils Kraemer, last modified: 2024-10-06</p></footer>
     <aside>
         <h1>Comments</h1>
         <p>Comments are on Twitter, use Hashtag <a href="https://twitter.com/search?f=tweets&q=%23lwbrd002&src=typd" target="_blank">#lwbrd002</a> to leave a comment.</p>

@@ -16,9 +16,9 @@
       body, p, h1, h2, h3 {
           font-family: monospace;
           font-size: 13px;
+		  line-height: 1.5;
       }
       h1 {
-          xletter-spacing: 4px;
           text-align: center;
           margin-bottom: 2em;
       }
@@ -37,11 +37,27 @@
           margin-right: 1em;
       }
       article pre, div.pre {
-          margin-left: 5em;
+          margin-left: 0em;
+	  width: calc(100vw - 36px);
       }
       article a {
           text-decoration: none;
       }
+	  article ul {
+		  margin-left: 3em;
+		  padding: 0;
+	  }
+	  article ul li {
+		  position: relative;
+		  list-style: none;
+		  line-height: 1.7;
+		  margin-left: 1.5em;
+	  }
+	  article ul li:before {
+		  content: "*";
+		  position: absolute;
+		  left: -15px;
+	  }
       article aside h1 {
           text-align: left;
           letter-spacing: 5px;
@@ -53,14 +69,170 @@
       .flr {
         float: right;
       }
+	  code {
+		  font-weight: bold;
+	  }
+	  pre code {
+		  font-weight: normal;
+	  }
+      /* a11y-light theme */
+/* Based on the Tomorrow Night Eighties theme: https://github.com/isagalaev/highlight.js/blob/master/src/styles/tomorrow-night-eighties.css */
+/* @author: ericwbailey */
+
+/* Comment */
+.hljs-comment,
+.hljs-quote {
+  color: #696969;
+}
+
+/* Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  color: #d91e18;
+}
+
+/* Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+  color: #aa5d00;
+}
+
+/* Yellow */
+.hljs-attribute {
+  color: #aa5d00;
+}
+
+/* Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #008000;
+}
+
+/* Blue */
+.hljs-title,
+.hljs-section {
+  color: #007faa;
+}
+
+/* Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #7928a1;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  background: #fefefe;
+  color: #545454;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+.highlighted {
+	  background: #eee;
+}
+
     </style>
 </head>
 <body>
 
-<style>    ul {        list-style: none;    }    blockquote {        margin: 0;    }    div {        float: left;    }    .clr {        float: none;        clear: both;    }    li {        position: relative;        margin: 1em 0 1em 2em;    }    li p {        position: absolute;        left: -105px;        text-align: right;        top: 0;        width: 100px;        margin: 0 5px 0 0;        font-size: 1em;    }    li p a {        text-decoration: none;    }</style>        <h1>lowb1rd.github.io</h1>        <h2>Recent Posts</h2>        <ul>                        <li>                <p><strong><a href="/004-create-a-twitter-chat-bot-with-php.html">[#004]</a></strong></p>                <blockquote cite="/004-create-a-twitter-chat-bot-with-php.html">                    <strong><a href="/004-create-a-twitter-chat-bot-with-php.html">Create A Twitter Chat-Bot with PHP .. in 5 minutes</a></strong><br />                    We want to set up a simple Twitter chatbot that just replies with whatever we say to it.
-                </blockquote>                <i>July 2016.  Category: tech</i>            </li>                        <li>                <p><strong><a href="/003-my-view-on-ipv6-deployment.html">[#003]</a></strong></p>                <blockquote cite="/003-my-view-on-ipv6-deployment.html">                    <strong><a href="/003-my-view-on-ipv6-deployment.html">My View on IPv6 Deployment</a></strong><br />                    My very personal and foolish view on the current state of IPv6 deployment
-                </blockquote>                <i>July 2016.  Category: tech</i>            </li>                        <li>                <p><strong><a href="/002-chunked-uploads-with-titanium.html">[#002]</a></strong></p>                <blockquote cite="/002-chunked-uploads-with-titanium.html">                    <strong><a href="/002-chunked-uploads-with-titanium.html">Chunked Uploads with Titanium</a></strong><br />                    The Titanium.Network.HTTPClient Object fails for large file uploads under iOS since the whole request is build entirely in memory by the Titanium SDK. Chunked uploading to the rescue!
-                </blockquote>                <i>October 2015.  Category: Titanium, Ti.NetworkClient</i>            </li>                        <li>                <p><strong><a href="/001-lets-blog.html">[#001]</a></strong></p>                <blockquote cite="/001-lets-blog.html">                    <strong><a href="/001-lets-blog.html">Let's Blog: Another static Blog on GitHub Pages</a></strong><br />                    These pages are statically generated from markdown formatted plaintext files and pushed to a GitHub Pages repository. Right now it's just a proof of concept, but there might be some useful posts here eventually.
-                </blockquote>                <i>October 2015.  </i>            </li>                        <!--<li><a href="archive.html">[Archive]</a></li>-->        </ul>        <h2>About me</h2>        <p>I'm a mobile app developer, driven by ambition, pursuing perfection.</p>        <p><a href="https://twitter.com/Bolle">[Twitter]</a> <a href="https://github.com/lowb1rd">[GitHub]</a> <a href="feed.xml">[RSS]</a></p>
+
+<style>
+    ul {
+        list-style: none;
+    }
+    blockquote {
+        margin: 0;
+    }
+    div {
+        float: left;
+    }
+    .clr {
+        float: none;
+        clear: both;
+    }
+    li {
+        position: relative;
+        margin: 1em 0 1em 2em;
+    }
+    li p {
+        position: absolute;
+        left: -105px;
+        text-align: right;
+        top: 0;
+        width: 100px;
+        margin: 0 5px 0 0;
+        font-size: 1em;
+    }
+    li p a {
+        text-decoration: none;
+    }
+</style>
+
+        <h1>lowb1rd.github.io</h1>
+        <h2>Recent Posts</h2>
+
+        <ul>
+                        <li>
+                <p><strong><a href="./004-create-a-twitter-chat-bot-with-php.html">[#004]</a></strong></p>
+                <blockquote cite="/004-create-a-twitter-chat-bot-with-php.html">
+                    <strong><a href="./004-create-a-twitter-chat-bot-with-php.html">Create A Twitter Chat-Bot with PHP .. in 5 minutes</a></strong><br />
+                    We want to set up a simple Twitter chatbot that just replies with whatever we say to it.
+                </blockquote>
+                <i>July 2016.  Category: tech</i>
+            </li>
+                        <li>
+                <p><strong><a href="./003-my-view-on-ipv6-deployment.html">[#003]</a></strong></p>
+                <blockquote cite="/003-my-view-on-ipv6-deployment.html">
+                    <strong><a href="./003-my-view-on-ipv6-deployment.html">My View on IPv6 Deployment</a></strong><br />
+                    My very personal and foolish view on the current state of IPv6 deployment
+                </blockquote>
+                <i>July 2016.  Category: tech</i>
+            </li>
+                        <li>
+                <p><strong><a href="./002-chunked-uploads-with-titanium.html">[#002]</a></strong></p>
+                <blockquote cite="/002-chunked-uploads-with-titanium.html">
+                    <strong><a href="./002-chunked-uploads-with-titanium.html">Chunked Uploads with Titanium</a></strong><br />
+                    The Titanium.Network.HTTPClient Object fails for large file uploads under iOS since the whole request is build entirely in memory by the Titanium SDK. Chunked uploading to the rescue!
+                </blockquote>
+                <i>October 2015.  Category: Titanium, Ti.NetworkClient</i>
+            </li>
+                        <li>
+                <p><strong><a href="./001-lets-blog.html">[#001]</a></strong></p>
+                <blockquote cite="/001-lets-blog.html">
+                    <strong><a href="./001-lets-blog.html">Let's Blog: Another static Blog on GitHub Pages</a></strong><br />
+                    These pages are statically generated from markdown formatted plaintext files and pushed to a GitHub Pages repository. Right now it's just a proof of concept, but there might be some useful posts here eventually.
+                </blockquote>
+                <i>October 2015.  </i>
+            </li>
+                        <!--<li><a href="archive.html">[Archive]</a></li>-->
+        </ul>
+
+
+        <h2>About me</h2>
+        <p>I do web things. Full stack. No fuzz.</p>
+        <p><a href="https://twitter.com/Bolle">[Twitter]</a> <a href="https://github.com/lowb1rd">[GitHub]</a> <a href="feed.xml">[RSS]</a></p>
+
 </body>
 </html>

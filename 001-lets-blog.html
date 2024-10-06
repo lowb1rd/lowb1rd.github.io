@@ -13,17 +13,20 @@
       body {
         max-width: 620px;
       }
-      body, p, h1, h2 {
+      body, p, h1, h2, h3 {
           font-family: monospace;
           font-size: 13px;
+		  line-height: 1.5;
       }
       h1 {
-          xletter-spacing: 4px;
           text-align: center;
           margin-bottom: 2em;
       }
+      h3 {
+          margin-left: 3em;
+      }
       .pre, header {
-          white-space: pre;
+          white-space: pre-wrap;
       }
       article, aside {
           padding-top: 2em;
@@ -34,11 +37,27 @@
           margin-right: 1em;
       }
       article pre, div.pre {
-          margin-left: 5em;
+          margin-left: 0em;
+	  width: calc(100vw - 36px);
       }
       article a {
           text-decoration: none;
       }
+	  article ul {
+		  margin-left: 3em;
+		  padding: 0;
+	  }
+	  article ul li {
+		  position: relative;
+		  list-style: none;
+		  line-height: 1.7;
+		  margin-left: 1.5em;
+	  }
+	  article ul li:before {
+		  content: "*";
+		  position: absolute;
+		  left: -15px;
+	  }
       article aside h1 {
           text-align: left;
           letter-spacing: 5px;
@@ -50,11 +69,95 @@
       .flr {
         float: right;
       }
+	  code {
+		  font-weight: bold;
+	  }
+	  pre code {
+		  font-weight: normal;
+	  }
+      /* a11y-light theme */
+/* Based on the Tomorrow Night Eighties theme: https://github.com/isagalaev/highlight.js/blob/master/src/styles/tomorrow-night-eighties.css */
+/* @author: ericwbailey */
+
+/* Comment */
+.hljs-comment,
+.hljs-quote {
+  color: #696969;
+}
+
+/* Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+  color: #d91e18;
+}
+
+/* Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+  color: #aa5d00;
+}
+
+/* Yellow */
+.hljs-attribute {
+  color: #aa5d00;
+}
+
+/* Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #008000;
+}
+
+/* Blue */
+.hljs-title,
+.hljs-section {
+  color: #007faa;
+}
+
+/* Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #7928a1;
+}
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  background: #fefefe;
+  color: #545454;
+  padding: 0.5em;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+.highlighted {
+	  background: #eee;
+}
+
     </style>
 </head>
 <body>
 
-<p><a href="index.html">[index]</a> <a href="/comment/001-lets-blog.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd001&src=typd" target="_blank">[comment]</a></p>
+<p><a href="index.html">[index]</a> <a href="./001-lets-blog.html">[permalink]</a> <a href="https://twitter.com/search?f=tweets&q=%23lwbrd001&src=typd" target="_blank">[comment]</a></p>
 
 <header>
 <span class='fll'>lowb1rd.github.io</span><span class='flr'>October 2015</span>
@@ -64,16 +167,12 @@ Blog Entry: 001</header>
 <article>
     <h1>Let's Blog: Another static Blog on GitHub Pages</h1>
 <p>I have been blogging (more or less) since 2009 at <a href="https://neunzehn83.de/blog">neunzehn83.de</a>. The blog pages there are statically generated from Markdown files and then served by a nginx webserver as plain HTML files.</p>
-
 <p>Static HTML files suit also perfectly to GitHub Pages. So I thought it would be a good idea to test a Blog there :)</p>
-
 <p>And here it is. These pages are brought to you by GitHub Pages. Blog entries are statically generated and then pushed to my GitHub Repo where they become available as a GitHub Page.</p>
-
 <p>Right now it's just a proof of concept, but there might be some useful posts here eventually.</p>
-
 <p>Oh, and since everything is so fancy here, comments to posts are handled by Twitter. Simply use the unique Hashtag for every post stated at the bottom of every post.</p>
 
-    <footer><p>--<br />(c) 2016 Nils Kraemer, last modified: 2016-05-26</p></footer>
+    <footer><p>--<br />(c) 2024 Nils Kraemer, last modified: 2024-10-06</p></footer>
     <aside>
         <h1>Comments</h1>
         <p>Comments are on Twitter, use Hashtag <a href="https://twitter.com/search?f=tweets&q=%23lwbrd001&src=typd" target="_blank">#lwbrd001</a> to leave a comment.</p>
